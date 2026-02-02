@@ -3,22 +3,15 @@
  * Provides offline functionality and caching
  */
 
-const CACHE_NAME = 'pku-calc-v1';
+const CACHE_NAME = 'pku-calc-v2';
 const ASSETS_TO_CACHE = [
-    '/',
-    '/index.html',
-    '/css/styles.css',
-    '/js/storage.js',
-    '/js/app.js',
-    '/manifest.json',
-    '/icons/icon-72.png',
-    '/icons/icon-96.png',
-    '/icons/icon-128.png',
-    '/icons/icon-144.png',
-    '/icons/icon-152.png',
-    '/icons/icon-192.png',
-    '/icons/icon-384.png',
-    '/icons/icon-512.png'
+    './',
+    './index.html',
+    './css/styles.css',
+    './js/storage.js',
+    './js/app.js',
+    './manifest.json',
+    './icons/icon.svg'
 ];
 
 /**
@@ -29,7 +22,12 @@ self.addEventListener('install', (event) => {
         caches.open(CACHE_NAME)
             .then((cache) => {
                 console.log('Caching app assets');
-                return cache.addAll(ASSETS_TO_CACHE);
+                // Cache each asset individually, don't fail if one is missing
+                return Promise.allSettled(
+                    ASSETS_TO_CACHE.map(url =>
+                        cache.add(url).catch(err => console.warn('Failed to cache:', url, err))
+                    )
+                );
             })
             .then(() => {
                 // Activate immediately without waiting
@@ -47,7 +45,7 @@ self.addEventListener('activate', (event) => {
             .then((cacheNames) => {
                 return Promise.all(
                     cacheNames
-                        .filter((name) => name !== CACHE_NAME)
+                        .filter((name) => name.startsWith('pku-calc-') && name !== CACHE_NAME)
                         .map((name) => {
                             console.log('Deleting old cache:', name);
                             return caches.delete(name);
@@ -70,6 +68,11 @@ self.addEventListener('fetch', (event) => {
         return;
     }
 
+    // Skip cross-origin requests
+    if (!event.request.url.startsWith(self.location.origin)) {
+        return;
+    }
+
     event.respondWith(
         caches.match(event.request)
             .then((cachedResponse) => {
@@ -82,7 +85,7 @@ self.addEventListener('fetch', (event) => {
                 return fetch(event.request)
                     .then((response) => {
                         // Don't cache non-successful responses
-                        if (!response || response.status !== 200 || response.type !== 'basic') {
+                        if (!response || response.status !== 200) {
                             return response;
                         }
 
@@ -99,7 +102,7 @@ self.addEventListener('fetch', (event) => {
                     .catch(() => {
                         // Network failed, return offline page for navigation requests
                         if (event.request.mode === 'navigate') {
-                            return caches.match('/index.html');
+                            return caches.match('./index.html');
                         }
                     });
             })
