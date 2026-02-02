@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="PKU Exchange Calculator - Calculate protein exchanges for PKU diet management">
+    <meta name="theme-color" content="#6366f1">
+
+    <title>PKU Exchange Calculator</title>
+
+    <link rel="manifest" href="manifest.json">
+    <link rel="icon" type="image/svg+xml" href="icons/icon.svg">
+    <link rel="apple-touch-icon" href="icons/icon-192.png">
+    <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+    <div class="app-container">
+        <!-- Header -->
+        <header class="header">
+            <h1>PKU Exchange Calc</h1>
+            <button id="theme-toggle" class="icon-btn" aria-label="Toggle dark mode">
+                <span class="icon-sun">☀️</span>
+                <span class="icon-moon">🌙</span>
+            </button>
+        </header>
+
+        <!-- Navigation Tabs -->
+        <nav class="tabs">
+            <button class="tab active" data-tab="calculator">Calculator</button>
+            <button class="tab" data-tab="favorites">Favorites</button>
+            <button class="tab" data-tab="history">History</button>
+            <button class="tab" data-tab="settings">Settings</button>
+        </nav>
+
+        <!-- Calculator Tab -->
+        <main id="calculator" class="tab-content active">
+            <div class="card">
+                <h2>Calculate Exchanges</h2>
+
+                <div class="input-group">
+                    <label for="food-name">Food Name (optional)</label>
+                    <input type="text" id="food-name" placeholder="e.g., Rice, Pasta...">
+                </div>
+
+                <div class="input-row">
+                    <div class="input-group">
+                        <label for="protein-value">Protein (g)</label>
+                        <input type="number" id="protein-value" step="0.1" min="0" placeholder="e.g., 2.8">
+                    </div>
+                    <div class="input-group">
+                        <label for="serving-size">per Amount (g)</label>
+                        <input type="number" id="serving-size" value="100" step="1" min="1">
+                    </div>
+                </div>
+
+                <button id="calculate-btn" class="btn btn-primary">Calculate</button>
+
+                <div id="result" class="result hidden">
+                    <!-- Free food indicator -->
+                    <div id="free-food-badge" class="free-badge hidden">
+                        <span class="free-icon">✓</span>
+                        <span>FREE FOOD</span>
+                        <span class="free-detail">(protein too low to count)</span>
+                    </div>
+
+                    <!-- Exchange amounts table -->
+                    <div class="exchange-table">
+                        <div class="exchange-row header-row">
+                            <span>Exchanges</span>
+                            <span>Grams</span>
+                        </div>
+                        <div id="half-exchange-row" class="exchange-row">
+                            <span class="exchange-label">½ Exchange</span>
+                            <span id="half-exchange-grams" class="exchange-value">0g</span>
+                        </div>
+                        <div id="one-exchange-row" class="exchange-row highlight">
+                            <span class="exchange-label">1 Exchange</span>
+                            <span id="one-exchange-grams" class="exchange-value">0g</span>
+                        </div>
+                        <div id="one-half-exchange-row" class="exchange-row">
+                            <span class="exchange-label">1½ Exchanges</span>
+                            <span id="one-half-exchange-grams" class="exchange-value">0g</span>
+                        </div>
+                        <div id="two-exchange-row" class="exchange-row">
+                            <span class="exchange-label">2 Exchanges</span>
+                            <span id="two-exchange-grams" class="exchange-value">0g</span>
+                        </div>
+                    </div>
+
+                    <div class="result-item">
+                        <span class="result-label">Exchanges per <span id="result-serving">100</span>g =</span>
+                        <span id="exchanges-per-serving" class="result-value">0</span>
+                    </div>
+
+                    <button id="save-favorite-btn" class="btn btn-secondary">Save to Favorites</button>
+                </div>
+            </div>
+
+            <!-- Reverse Calculator -->
+            <div class="card">
+                <h2>Reverse Calculator</h2>
+                <p class="card-description">Calculate exchanges from grams or grams from exchanges</p>
+
+                <div class="input-row">
+                    <div class="input-group">
+                        <label for="reverse-grams">Grams</label>
+                        <input type="number" id="reverse-grams" step="1" min="0" placeholder="Enter grams">
+                    </div>
+                    <div class="input-group">
+                        <label for="reverse-exchanges">Exchanges</label>
+                        <input type="number" id="reverse-exchanges" step="0.1" min="0" placeholder="Enter exchanges">
+                    </div>
+                </div>
+
+                <p class="hint">Enter a value in either field to calculate the other (using current protein values above)</p>
+            </div>
+        </main>
+
+        <!-- Favorites Tab -->
+        <section id="favorites" class="tab-content">
+            <div class="card">
+                <h2>Saved Favorites</h2>
+                <div id="favorites-list" class="list">
+                    <p class="empty-state">No favorites saved yet. Calculate and save foods from the calculator.</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- History Tab -->
+        <section id="history" class="tab-content">
+            <div class="card">
+                <div class="card-header">
+                    <h2>Calculation History</h2>
+                    <button id="clear-history-btn" class="btn btn-danger btn-small">Clear</button>
+                </div>
+                <div id="history-list" class="list">
+                    <p class="empty-state">No calculations yet. Use the calculator to get started.</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Settings Tab -->
+        <section id="settings" class="tab-content">
+            <div class="card">
+                <h2>Settings</h2>
+
+                <div class="setting-item">
+                    <div class="setting-info">
+                        <label for="exchange-value">Protein per Exchange (g)</label>
+                        <p class="setting-description">Standard is 1.2g, but some dietitians use different values</p>
+                    </div>
+                    <input type="number" id="exchange-value" value="1.2" step="0.1" min="0.1" max="10">
+                </div>
+
+                <div class="setting-item">
+                    <div class="setting-info">
+                        <label>Dark Mode</label>
+                        <p class="setting-description">Toggle between light and dark themes</p>
+                    </div>
+                    <button id="theme-toggle-settings" class="toggle-btn">
+                        <span class="toggle-slider"></span>
+                    </button>
+                </div>
+
+                <div class="setting-item">
+                    <div class="setting-info">
+                        <label>About</label>
+                        <p class="setting-description">PKU Exchange Calculator v1.0</p>
+                        <p class="setting-description">A simple tool for calculating protein exchanges for PKU diet management.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Install Prompt -->
+        <div id="install-prompt" class="install-prompt hidden">
+            <p>Install this app for quick access!</p>
+            <div class="install-buttons">
+                <button id="install-btn" class="btn btn-primary btn-small">Install</button>
+                <button id="dismiss-install" class="btn btn-secondary btn-small">Later</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="js/storage.js"></script>
+    <script src="js/app.js"></script>
+</body>
+</html>
